@@ -1,0 +1,45 @@
+@function size($size) {
+  $width: 750;
+  $scale: 10;
+  @return ($size / $width * $scale) * 1rem;
+}
+
+@mixin data-dpr($field,$val) {
+  [data-dpr="1"] & {
+    #{$field}: $val*1px;
+  }
+  [data-dpr="2"] & {
+    #{$field}: $val*2px;
+  }
+  [data-dpr="3"] & {
+    #{$field}: $val*3px;
+  }
+}
+
+@mixin no-wrap {
+  overflow: hidden;
+  text-overflow:ellipsis;
+  white-space: nowrap;
+}
+
+// 背景图片
+@mixin bg-image($url) {
+  background-image: url($url + "@2x.png");
+  @media (-webkit-min-device-pixel-ratio: 3),(min-device-pixel-ratio: 3) {
+    background-image: url($url + "@3x.png");
+  }
+}
+
+@mixin extend-click{
+  position: relative;
+  &:before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+  }
+}
+  
+

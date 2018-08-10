@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="keywords" content="积分任务,模拟炒股,港股美股模拟交易,股票实时行情,股票牛">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="../../plugins/flexible.js"></script>
+  <title>积分任务</title>
+  <style type="text/css">
+    [v-cloak] {
+      display:none!important;
+    }
+  </style>
+</head>
+<body >
+  <div id="credit" class="wrapper"  v-cloak>
+    <div class="credits__sign">
+      <div class="credits__sign__scores">
+        <div class="sign__scores">
+          <span class="sign__scores__name" >我的积分</span>
+          <span class="sign__scores__icon" @click="creditTip">
+            <img src="./images/my_jifen_icon.png">
+          </span>
+        </div>
+        <div class="sign__scores_account">{{signInfo.userIntegral}}</div>
+      </div>
+      <button class="credits__sign__btn" @click="creditSign" :disabled="isClick">{{creditText}}</button>
+    </div>
+    <div class="credits__sign__date">
+      <div class="credit__item" v-for="(item, index) in signInfo.weekData" :key="index" :class="index === signInfo.weekData.length -1 ? 'final' : ''">
+        <div class="credit__item__score" :class="item.status === true ? 'item__score__active' : ''">+{{item.score}}</div>
+        <div class="credit__item__icon" :class="item.status === true ? 'item__icon__active' : ''"></div>
+        <div class="credit__item__name">{{item.week}}</div>
+      </div>
+    </div>
+    <div class="credits_tab">
+      <cube-tab-bar  show-slider v-model="selectedLabel"
+        :use-transition="disabled"
+        ref="tabNav"
+        :data="tabs">
+      </cube-tab-bar>       
+    </div>
+    <div class="tab-slide-container">
+      <cube-slide
+        ref="slide"
+        :loop="loop"
+        :initial-index="initialIndex"
+        :auto-play="autoPlay"
+        :show-dots="showDots"
+        :options="options"
+        @scroll="scroll"
+        @change="changePage"
+      >
+        <cube-slide-item>
+          <cube-scroll >
+              <div class="credits-gift">
+                  <div class="type" v-for="(item, index) in gifInfo" :key="index" :class="index === gifInfo.length-1 ? 'type-final' : ''">
+                    <div v-if="item.taskList" class="title">
+                      <span>{{item.typeDesc}}</span>
+                      <span v-if="item.cardType === 0" class="card__record" @click="toRewardCenter"> 兑换记录 ></span>
+                      <span v-if="item.cardType === 1" class="card__limit">（仅限大陆用户境内使用）</span>
+                    </div>
+                    <ul v-if="item.taskList" class="task__list">
+                      <li  v-for="(item, index) in item.taskList" class="task__list__item">
+                        <img :src="item.iconUrl" @click="toChangeCredit(item)">
+                      </li>
+                    </ul>
+                  </div>
+              </div>
+          </cube-scroll>
+        </cube-slide-item>
+        <cube-slide-item>
+          <cube-scroll >
+            <div class="credits-task" v-for="(taskInfo,index) in creditInfos">
+              <div class="title">我的任务</div>
+              <div class="item"   v-for="(item, index) in taskInfo.taskList" :class="index === taskInfo.taskList.length-1 ? 'task-final' : ''" @click="toTaskDetail(item)">
+                <img class="icon" :src="item.iconUrl">
+                <div class="text">
+                  <div class="name" >{{item.title}}</div>
+                  <div class="value">{{item.desc}}</div>
+                </div>
+                <div class="score" :class="item.isDone === '已完成' ? 'score-isdoned' : 'score-normal'">
+                  <div class="s-num">{{item.integralValue}}</div>
+                </div>
+                <div class="s-status s-status-done" v-if="item.isDone === '去完成'" ></div>
+                <div class="s-status s-status-isget" v-if="item.isDone === '待领取'" ></div>
+                <div class="s-status s-status-isdoned" v-if="item.isDone === '已完成'" ></div>
+              </div>
+            </div>            
+          </cube-scroll>
+        </cube-slide-item>
+      </cube-slide>
+    </div>
+    <div class="layer-wrapper"  v-if="giftItem" >
+      <div class="layer-wrapper-mask">
+        <div class="layer-content" >
+          <div class="layer-close" @click="closeLayer">x</div>
+          <div class="layer-header">
+            <img :src="giftItem.iconUrl"/>
+          </div>
+          <div class="layer-title">16:00前兑换当日生效，16:00后则次日生效</div>
+          <button class="layer-btn layer-btn-ac" v-if="signInfo.userIntegral >= giftItem.integralValue" :disabled="false" @click="toChangeGif">
+            <span class="layer-btn-active"></span>
+            <span class="layer-btn-title">{{giftItem.integralValue}}积分</span>
+          </button>
+          <button class="layer-btn layer-btn-dis" v-else :disabled="true">
+            <span class="layer-btn-disabled"></span>
+            <span class="layer-btn-title">{{giftItem.integralValue}}积分</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+<script type="text/javascript">
+  // GrowingIO统计
+  setTimeout(function(){
+    var _vds = _vds || [];
+    window._vds = _vds;
+    (function () {
+      _vds.push(['setAccountId', 'b8e3914f8cbd753f']);
+      (function () {
+        var vds = document.createElement('script');
+        vds.type = 'text/javascript';
+        vds.async = true;
+        vds.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'dn-growing.qbox.me/vds.js';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(vds, s);
+      })();
+    })();
+  }, 500);
+</script>
+</html>
